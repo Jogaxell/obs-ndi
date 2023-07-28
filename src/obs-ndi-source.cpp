@@ -72,6 +72,7 @@ struct ndi_source {
 	bool alpha_filter_enabled;
 	bool audio_enabled;
 	os_performance_token_t *perf_token;
+	obs_data_t *settings;
 };
 
 static obs_source_t *find_filter_by_id(obs_source_t *context, const char *id)
@@ -565,41 +566,28 @@ void ndi_source_update(void *data, obs_data_t *settings)
 void ndi_source_shown(void *data)
 {
 	auto s = (struct ndi_source *)data;
-
-	if (s->ndi_receiver) {
-		s->tally.on_preview = (Config::Current())->TallyPreviewEnabled;
-		ndiLib->recv_set_tally(s->ndi_receiver, &s->tally);
-	}
+	ndi_source_create(s->settings, s->source)
 }
 
 void ndi_source_hidden(void *data)
 {
 	auto s = (struct ndi_source *)data;
 
-	if (s->ndi_receiver) {
-		s->tally.on_preview = false;
-		ndiLib->recv_set_tally(s->ndi_receiver, &s->tally);
-	}
+	ndi_source_destroy(s)
 }
 
 void ndi_source_activated(void *data)
 {
 	auto s = (struct ndi_source *)data;
 
-	if (s->ndi_receiver) {
-		s->tally.on_program = (Config::Current())->TallyProgramEnabled;
-		ndiLib->recv_set_tally(s->ndi_receiver, &s->tally);
-	}
+	ndi_source_create(s->settings, s->source)
 }
 
 void ndi_source_deactivated(void *data)
 {
 	auto s = (struct ndi_source *)data;
 
-	if (s->ndi_receiver) {
-		s->tally.on_program = false;
-		ndiLib->recv_set_tally(s->ndi_receiver, &s->tally);
-	}
+	ndi_source_destroy(s)
 }
 
 void *ndi_source_create(obs_data_t *settings, obs_source_t *source)
