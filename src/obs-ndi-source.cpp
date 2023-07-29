@@ -563,6 +563,27 @@ void ndi_source_update(void *data, obs_data_t *settings)
 	}
 }
 
+
+
+void *ndi_source_create(obs_data_t *settings, obs_source_t *source)
+{
+	auto s = (struct ndi_source *)bzalloc(sizeof(struct ndi_source));
+	s->source = source;
+	s->running = false;
+	s->perf_token = NULL;
+	ndi_source_update(s, settings);
+	return s;
+}
+
+void ndi_source_destroy(void *data)
+{
+	auto s = (struct ndi_source *)data;
+	s->running = false;
+	pthread_join(s->av_thread, NULL);
+	ndiLib->recv_destroy(s->ndi_receiver);
+	bfree(s);
+}
+
 void ndi_source_shown(void *data)  //preview
 {
 	auto s = (struct ndi_source *)data;
@@ -605,25 +626,6 @@ void ndi_source_deactivated(void *data)  //program
 		s->tally.on_program = false;
 		ndiLib->recv_set_tally(s->ndi_receiver, &s->tally);
 	}
-}
-
-void *ndi_source_create(obs_data_t *settings, obs_source_t *source)
-{
-	auto s = (struct ndi_source *)bzalloc(sizeof(struct ndi_source));
-	s->source = source;
-	s->running = false;
-	s->perf_token = NULL;
-	ndi_source_update(s, settings);
-	return s;
-}
-
-void ndi_source_destroy(void *data)
-{
-	auto s = (struct ndi_source *)data;
-	s->running = false;
-	pthread_join(s->av_thread, NULL);
-	ndiLib->recv_destroy(s->ndi_receiver);
-	bfree(s);
 }
 
 struct obs_source_info create_ndi_source_info()
