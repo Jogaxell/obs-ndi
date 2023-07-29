@@ -563,31 +563,48 @@ void ndi_source_update(void *data, obs_data_t *settings)
 	}
 }
 
-void ndi_source_shown(void *data)
+void ndi_source_shown(void *data)  //preview
 {
 	auto s = (struct ndi_source *)data;
-	ndi_source_create(s->settings, s->source)
+
+	if (s->ndi_receiver) {
+		ndi_source_create(s->settings, s->source);  //
+		s->tally.on_preview = (Config::Current())->TallyPreviewEnabled;
+		ndiLib->recv_set_tally(s->ndi_receiver, &s->tally);
+	}
 }
 
-void ndi_source_hidden(void *data)
+void ndi_source_hidden(void *data)  //preview
 {
 	auto s = (struct ndi_source *)data;
 
-	ndi_source_destroy(s)
+	if (s->ndi_receiver) {
+		ndi_source_destroy(s);  //
+		s->tally.on_preview = false;
+		ndiLib->recv_set_tally(s->ndi_receiver, &s->tally);
+	}
 }
 
-void ndi_source_activated(void *data)
+void ndi_source_activated(void *data)  //program
 {
 	auto s = (struct ndi_source *)data;
 
-	ndi_source_create(s->settings, s->source)
+	if (s->ndi_receiver) {
+		ndi_source_create(s->settings, s->source);  //
+		s->tally.on_program = (Config::Current())->TallyProgramEnabled;
+		ndiLib->recv_set_tally(s->ndi_receiver, &s->tally);
+	}
 }
 
-void ndi_source_deactivated(void *data)
+void ndi_source_deactivated(void *data)  //program
 {
 	auto s = (struct ndi_source *)data;
 
-	ndi_source_destroy(s)
+	if (s->ndi_receiver) {
+		ndi_source_destroy(s);  //
+		s->tally.on_program = false;
+		ndiLib->recv_set_tally(s->ndi_receiver, &s->tally);
+	}
 }
 
 void *ndi_source_create(obs_data_t *settings, obs_source_t *source)
